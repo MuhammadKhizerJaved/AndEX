@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Info Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    .info {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    pre {
+      background: #eee;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <div class="title">Current Date & Time:</div>
+    <div id="datetime"></div>
+  </div>
+
+  <div class="info">
+    <div class="title">Local Storage:</div>
+    <pre id="localStorageData"></pre>
+  </div>
+
+  <div class="info">
+    <div class="title">Session Storage:</div>
+    <pre id="sessionStorageData"></pre>
+  </div>
+
+  <div class="info">
+    <div class="title">Cookies:</div>
+    <pre id="cookies"></pre>
+  </div>
+
+  <div class="info">
+    <div class="title">Current Path:</div>
+    <div id="path"></div>
+  </div>
+
+  <script>
+    function updateDateTime() {
+      const now = new Date();
+      document.getElementById("datetime").textContent = now.toLocaleString();
+    }
+
+    function displayStorageData() {
+      const localData = JSON.stringify(localStorage, null, 2);
+      const sessionData = JSON.stringify(sessionStorage, null, 2);
+      document.getElementById("localStorageData").textContent = localData;
+      document.getElementById("sessionStorageData").textContent = sessionData;
+      document.getElementById("cookies").textContent = document.cookie || "No cookies found";
+      document.getElementById("path").textContent = window.location.pathname;
+    }
+
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+    displayStorageData();
+  </script>
+</body>
+</html>
